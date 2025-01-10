@@ -110,8 +110,9 @@ def get_loaders():
     # tensors. Using `transform`, the PIL images are converted to torch tensors
     # every time a sample is accessed. Using `numpy_collate`, the torch tensors
     # for inputs and labels are collated and then converted to numpy arrays.
-    # The collated batch is then converted to JAX arrays in the `train_step`
-    # and `eval_step` functions.
+    # The collated batch is then converted to JAX arrays in the
+    # `do_training_step` and `do_validation_step` methods.
+
     # Ideally, the dataset would return numpy or JAX arrays directly so that
     # all conversions could be avoided.
 
