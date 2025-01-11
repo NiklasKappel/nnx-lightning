@@ -65,12 +65,26 @@ class LitCNN(L.LightningModule):
         self.optimizers().step()  # type: ignore
 
         loss = self.do_training_step(self.model, self.optimizer, batch)
-        self.log("train_loss", loss.item())
+
+        # `LightningModule.log` is analogous to `nnx.metrics.Metric.update`.
+        # The lightning trainer decides when to compute and reset collected
+        # metrics, as well as when to log them with a logger. The latter is
+        # analogous to appending metric values to a global metrics history.
+        # While a custom metrics history could gather JAX arrays,
+        # `LightningModule.log` only accepts Python scalars. This means that we
+        # have to use the blocking `item` method.
+        self.log(
+            "train_loss",
+            loss.item(),  # Blocking call.
+        )
 
     def validation_step(self, batch):
         loss = self.do_validation_step(self.model, batch)
-        batch_size = batch[0].shape[0]
-        self.log("val_loss", loss.item(), batch_size=batch_size)
+        self.log(
+            "val_loss",
+            loss.item(),
+            batch_size=batch[0].shape[0],
+        )
 
     def configure_optimizers(self):
         # We create the optimizer in the `configure_optimizers` method so that
@@ -79,6 +93,7 @@ class LitCNN(L.LightningModule):
         self.optimizer = nnx.Optimizer(
             self.model, optax.adamw(self.learning_rate, self.momentum)
         )
+
         # We (implicitly) return `None` because we don't have a PyTorch optimizer.
 
     @staticmethod
@@ -109,16 +124,21 @@ def get_loaders():
     # Here, the dataset returns inputs as PIL images and labels as torch
     # tensors. Using `transform`, the PIL images are converted to torch tensors
     # every time a sample is accessed. Using `numpy_collate`, the torch tensors
-    # for inputs and labels are collated and then converted to numpy arrays.
-    # The collated batch is then converted to JAX arrays in the
-    # `do_training_step` and `do_validation_step` methods.
+    # for inputs and labels are collated and then converted to numpy arrays
+    # every time a batch is accesssed.
 
-    # Ideally, the dataset would return numpy or JAX arrays directly so that
-    # all conversions could be avoided.
+    # Ideally, the dataset would return numpy arrays directly so that the
+    # conversions could be avoided.
+
+    # Alternatively, we could handle all data loading and batching using torch
+    # and torch tensors and only convert them to numpy arrays in the
+    # `training_step` and `validation_step` methods.
 
     def transform(x):
-        # Convert to tensor and move the feature dimension to the end.
-        return to_tensor(x).movedim(0, -1)
+        x = to_tensor(x)
+        # Move the feature dimension to the end.
+        x = x.movedim(0, -1)
+        return x
 
     train_set = datasets.FashionMNIST(
         root="data", train=True, download=True, transform=transform
