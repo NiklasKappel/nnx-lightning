@@ -115,7 +115,6 @@ class LitCNN(L.LightningModule):
     @staticmethod
     @nnx.jit
     def do_validation_step(model: CNN, batch):
-        print("Compiling eval_step")
         loss, _ = LitCNN.loss_fn(model, batch)
         return loss
 
