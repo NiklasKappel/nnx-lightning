@@ -10,6 +10,7 @@ Todo:
 Notes:
 
 - Hyperparameters that are given to the LightningModule on initialization and used in the step functions must be passed explicitly through the JIT boundary (possibly in a `step_config` PyTree).
+- Lightning likes to warn about data loaders that don't use multiple processors, but JAX likes to warn that using Python multiprocessing results in deadlocks.
 
 See also:
 
