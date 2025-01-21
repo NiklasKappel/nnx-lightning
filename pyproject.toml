@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
   "flax>=0.10.2",
+  "jax[cuda12]>=0.5.0",
   "lightning>=2.5.0.post0",
   "pydlpack>=0.2.1",
   "tensorboard>=2.18.0",
@@ -23,3 +24,8 @@ torchvision = [
 name = "pytorch-cu121"
 url = "https://download.pytorch.org/whl/cu121"
 explicit = true
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
+]
