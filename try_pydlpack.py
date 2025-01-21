@@ -24,12 +24,13 @@ assert initial_torch_tensor.device == torch_device
 
 def convert_to_torch_and_back(jax_array):
     torch_tensor = torch.from_numpy(np.asarray(jax_array)).cuda(torch_device)
-    jax_array = jnp.asarray(torch_tensor, device=jax_device).block_until_ready()
+    new_jax_array = jnp.asarray(torch_tensor, device=jax_device).block_until_ready()
+    return new_jax_array
 
 
 def convert_to_jax_and_back(torch_tensor):
     jax_array = jnp.asarray(torch_tensor, device=jax_device).block_until_ready()
-    torch_tensor = torch.from_numpy(np.asarray(jax_array)).cuda(torch_device)
+    new_torch_tensor = torch.from_numpy(np.asarray(jax_array)).cuda(torch_device)
 
 
 def convert_to_torch_and_back_dlpack(jax_array):
@@ -47,7 +48,7 @@ convert_to_jax_and_back(initial_torch_tensor)
 convert_to_torch_and_back_dlpack(initial_jax_array)
 convert_to_jax_and_back_dlpack(initial_torch_tensor)
 
-print(timeit(lambda: convert_to_torch_and_back(initial_jax_array), number=1000))
-print(timeit(lambda: convert_to_jax_and_back(initial_torch_tensor), number=1000))
-print(timeit(lambda: convert_to_torch_and_back_dlpack(initial_jax_array), number=1000))
-print(timeit(lambda: convert_to_jax_and_back_dlpack(initial_torch_tensor), number=1000))
+print(timeit(lambda: convert_to_torch_and_back(initial_jax_array), number=10000))
+print(timeit(lambda: convert_to_jax_and_back(initial_torch_tensor), number=10000))
+print(timeit(lambda: convert_to_torch_and_back_dlpack(initial_jax_array), number=10000))
+print(timeit(lambda: convert_to_jax_and_back_dlpack(initial_torch_tensor), number=10000))
