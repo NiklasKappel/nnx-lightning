@@ -7,16 +7,19 @@ requires-python = ">=3.12"
 dependencies = [
   "flax>=0.10.2",
   "lightning>=2.5.0.post0",
+  "pydlpack>=0.2.1",
   "tensorboard>=2.18.0",
   "torch>=2.5.1",
   "torchvision>=0.2.0",
 ]
 
 [tool.uv.sources]
-torch = [{ index = "pytorch-cpu" }]
-torchvision = [{ index = "pytorch-cpu" }]
+torch = [{ index = "pytorch-cu121", marker = "platform_system != 'Darwin'" }]
+torchvision = [
+  { index = "pytorch-cu121", marker = "platform_system != 'Darwin'" },
+]
 
 [[tool.uv.index]]
-name = "pytorch-cpu"
-url = "https://download.pytorch.org/whl/cpu"
+name = "pytorch-cu121"
+url = "https://download.pytorch.org/whl/cu121"
 explicit = true
