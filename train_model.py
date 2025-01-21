@@ -173,6 +173,7 @@ def main():
 
     logger = TensorBoardLogger("tb_logs")
     trainer = L.Trainer(
+        devices=7,
         enable_checkpointing=False,
         enable_model_summary=False,
         limit_train_batches=10,
