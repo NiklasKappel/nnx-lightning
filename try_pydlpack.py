@@ -4,15 +4,15 @@ jax_device = jax.devices()[-1]
 jax.config.update("jax_default_device", jax_device)
 
 import jax.numpy as jnp
-
 import torch
 
 assert torch.cuda.is_available()
 torch_device = torch.device(f"cuda:{torch.cuda.device_count() - 1}")
 torch.set_default_device(torch_device)
 
+from timeit import timeit
+
 import numpy as np
-import timeit
 from dlpack import asdlpack
 
 initial_jax_array = jax.random.normal(jax.random.PRNGKey(0), (1024, 1024))
@@ -46,3 +46,8 @@ convert_to_torch_and_back(initial_jax_array)
 convert_to_jax_and_back(initial_torch_tensor)
 convert_to_torch_and_back_dlpack(initial_jax_array)
 convert_to_jax_and_back_dlpack(initial_torch_tensor)
+
+print(timeit(lambda: convert_to_torch_and_back(initial_jax_array), number=1000))
+print(timeit(lambda: convert_to_jax_and_back(initial_torch_tensor), number=1000))
+print(timeit(lambda: convert_to_torch_and_back_dlpack(initial_jax_array), number=1000))
+print(timeit(lambda: convert_to_jax_and_back_dlpack(initial_torch_tensor), number=1000))
