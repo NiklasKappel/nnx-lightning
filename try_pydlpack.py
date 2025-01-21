@@ -1,24 +1,46 @@
 import jax
 
-jax.config.update("jax_default_device", jax.devices()[-1])
+jax_device = jax.devices()[-1]
+jax.config.update("jax_default_device", jax_device)
+
+import jax.numpy as jnp
 
 import torch
 
 assert torch.cuda.is_available()
-torch.set_default_device(f"cuda:{torch.cuda.device_count() - 1}")
+torch_device = f"cuda:{torch.cuda.device_count() - 1}"
+torch.set_default_device(torch_device)
 
 from dlpack import asdlpack
 
 initial_jax_array = jax.random.normal(jax.random.PRNGKey(0), (1024, 1024))
-initial_torch_tensor = torch.randn(1024, 1024)
-print(initial_jax_array.device, initial_torch_tensor.device)
+assert initial_jax_array.device == jax_device
 
-# a1 = jax.numpy.array([[1, 2], [3, 4]])
-# t1 = torch.from_dlpack(asdlpack(a1))
-# print(a1, a1.device)
-# print(t1, t1.device)
-#
-# t2 = torch.tensor([[5, 6], [7, 8]]).cuda()
-# a2 = jax.numpy.from_dlpack(asdlpack(t2))
-# print(t2, t2.device)
-# print(a2, a2.device)
+initial_torch_tensor = torch.randn(1024, 1024, device=torch_device)
+assert initial_torch_tensor.device == torch_device
+
+
+def convert_to_torch_and_back(jax_array):
+    torch_tensor = torch.as_tensor(jax_array, device=torch_device)
+    jax_array = jnp.asarray(torch_tensor, device=jax_device)
+
+
+def convert_to_jax_and_back(torch_tensor):
+    jax_array = jnp.asarray(torch_tensor, device=jax_device)
+    torch_tensor = torch.as_tensor(jax_array, device=torch_device)
+
+
+def convert_to_torch_and_back_dlpack(jax_array):
+    torch_tensor = torch.from_dlpack(asdlpack(jax_array))  # type: ignore
+    jax_array = jnp.from_dlpack(asdlpack(torch_tensor))
+
+
+def convert_to_jax_and_back_dlpack(torch_tensor):
+    jax_array = jnp.from_dlpack(asdlpack(torch_tensor))
+    torch_tensor = torch.from_dlpack(asdlpack(jax_array))  # type: ignore
+
+
+convert_to_torch_and_back(initial_jax_array)
+convert_to_jax_and_back(initial_torch_tensor)
+convert_to_torch_and_back_dlpack(initial_jax_array)
+convert_to_jax_and_back_dlpack(initial_torch_tensor)
